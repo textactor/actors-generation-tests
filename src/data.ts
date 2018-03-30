@@ -10,7 +10,7 @@ export function formatConceptsFile(locale: Locale) {
 }
 
 export function formatWikiEntitiesFile(locale: Locale) {
-    return join(formatDataDir(locale), 'wiki-entities.json');
+    return join(__dirname, `../data`, `${locale.lang}-wiki-entities.json`);
 }
 
 export function formatWikiSearchNamesFile(locale: Locale) {
