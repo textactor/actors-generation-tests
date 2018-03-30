@@ -18,7 +18,7 @@ export function formatWikiSearchNamesFile(locale: Locale) {
 }
 
 export function formatWikiTitlesFile(locale: Locale) {
-    return join(formatDataDir(locale), 'wiki-titles.json');
+    return join(__dirname, `../data`, `${locale.lang}-wiki-titles.json`);
 }
 
 export function formatActorsFile(locale: Locale) {
