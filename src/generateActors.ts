@@ -4,23 +4,33 @@ import { MemoryActorRepository, SaveActor, MemoryActorNameRepository, Actor, Act
 import { formatActorsFile, formatConceptActorsFile } from "./data";
 import { writeFileSync } from "fs";
 import { FileWikiEntityRepository } from "./fileWikiEntityRepository";
+import { FileWikiSearchNameRepository } from "./fileWikiSearchNameRepository";
+import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
 
 export async function generateActors(locale: Locale, conceptRepository: IConceptRepository): Promise<void> {
     const wikiRepository = new FileWikiEntityRepository(locale);
     const actorRepository = new MemoryActorRepository();
     const actorNameRepository = new MemoryActorNameRepository();
+    const wikiSearchNameRepository = new FileWikiSearchNameRepository(locale);
+    const wikiTitleRepository = new FileWikiTitleRepository(locale);
     const saveActor = new SaveActor(actorRepository, actorNameRepository);
-    const processConcepts = new ProcessConcepts(locale, conceptRepository, wikiRepository);
+    const processConcepts = new ProcessConcepts(locale,
+        conceptRepository,
+        wikiRepository,
+        wikiSearchNameRepository,
+        wikiTitleRepository);
 
     const conceptActors: ConceptActor[] = [];
 
     const processOptions: ProcessConceptsOptions = {
-        minConceptPopularity: 10,
-        minAbbrConceptPopularity: 15,
-        minOneWordConceptPopularity: 15,
+        minConceptPopularity: 8,
+        minAbbrConceptPopularity: 12,
+        minOneWordConceptPopularity: 12,
     };
 
     await wikiRepository.init();
+    await wikiSearchNameRepository.init();
+    await wikiTitleRepository.init();
 
     await processConcepts.execute((conceptActor: ConceptActor) => {
         conceptActors.push(conceptActor);
@@ -34,6 +44,8 @@ export async function generateActors(locale: Locale, conceptRepository: IConcept
         });
 
     await wikiRepository.close();
+    await wikiSearchNameRepository.close();
+    await wikiTitleRepository.close();
 }
 
 function conceptActorToActor(conceptActor: ConceptActor): Actor {

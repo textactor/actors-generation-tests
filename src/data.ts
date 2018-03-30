@@ -13,6 +13,14 @@ export function formatWikiEntitiesFile(locale: Locale) {
     return join(formatDataDir(locale), 'wiki-entities.json');
 }
 
+export function formatWikiSearchNamesFile(locale: Locale) {
+    return join(formatDataDir(locale), 'wiki-search-names.json');
+}
+
+export function formatWikiTitlesFile(locale: Locale) {
+    return join(formatDataDir(locale), 'wiki-titles.json');
+}
+
 export function formatActorsFile(locale: Locale) {
     return join(formatDataDir(locale), 'actors.json');
 }
