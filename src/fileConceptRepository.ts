@@ -115,11 +115,14 @@ export class FileConceptRepository implements IConceptRepository {
 
         return Promise.resolve(list);
     }
-    getPopularRootNameHashes(_locale: Locale, limit: number, skip?: number): Promise<PopularConceptHash[]> {
-        skip = skip || 0;
+    getPopularRootNameHashes(_locale: Locale, limit: number, skip: number, minCountWords?: number): Promise<PopularConceptHash[]> {
+        minCountWords = minCountWords || 1;
         const map: { [hash: string]: { popularity: number, ids: string[] } } = {}
 
         for (let item of this.dbItems.find()) {
+            if (item.countWords < minCountWords) {
+                continue;
+            }
             map[item.rootNameHash] = map[item.rootNameHash] || { popularity: 0, ids: [] };
 
             map[item.rootNameHash].popularity += item.popularity;

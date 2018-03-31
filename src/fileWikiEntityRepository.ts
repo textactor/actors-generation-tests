@@ -1,5 +1,5 @@
 
-import { RepUpdateData } from '@textactor/domain';
+import { RepUpdateData, uniq } from '@textactor/domain';
 import * as Loki from 'lokijs';
 import { IWikiEntityRepository, Locale, WikiEntity } from '@textactor/concept-domain';
 import { formatWikiEntitiesFile } from './data';
@@ -41,6 +41,12 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
 
     count(): Promise<number> {
         return Promise.resolve(this.dbItems.count());
+    }
+
+    getLastnames(lang: string): Promise<string[]> {
+        const list: string[] = this.dbItems.where(item => item.lang === lang && !!item.lastname).map(item => item.lastname);
+
+        return Promise.resolve(uniq(list));
     }
 
     getByNameHash(hash: string): Promise<WikiEntity[]> {

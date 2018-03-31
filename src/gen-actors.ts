@@ -1,3 +1,6 @@
+
+require('dotenv').config();
+
 import { createLocale } from "./utils";
 import { parse as parseConcepts } from 'concepts-parser';
 import { Locale, Concept, PushContextConcepts, ConceptHelper } from "@textactor/concept-domain";
