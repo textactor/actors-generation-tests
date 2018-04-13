@@ -5,23 +5,33 @@ import { readdirSync, readFile } from 'fs';
 import { formatArticlesDir } from './data';
 import { WebArticle } from './fetchArticles';
 import { seriesPromise } from '@textactor/domain';
-import { Concept, ConceptHelper, PushContextConcepts, DeleteUnpopularConcepts } from '@textactor/concept-domain';
+import {
+    Concept,
+    ConceptHelper,
+    PushContextConcepts,
+    DeleteUnpopularConcepts,
+    MemoryRootNameRepository,
+    MemoryConceptRepository,
+} from '@textactor/concept-domain';
 import { join } from 'path';
-import { FileConceptRepository } from './fileConceptRepository';
 
 export function generateConcepts(locale: Locale): Promise<number> {
     const dir = formatArticlesDir(locale);
     const files = readdirSync(dir);
 
-    const conceptRepository = new FileConceptRepository(locale);
+    const conceptRepository = new MemoryConceptRepository();
+    const rootNameRep = new MemoryRootNameRepository();
 
-    const pushConcepts = new PushContextConcepts(conceptRepository);
-    const deleteUnpopularConcepts = new DeleteUnpopularConcepts(locale, conceptRepository);
+    const pushConcepts = new PushContextConcepts(conceptRepository, rootNameRep);
+    const deleteUnpopularConcepts = new DeleteUnpopularConcepts(locale, conceptRepository, rootNameRep);
 
     const processOptions = {
-        minConceptPopularity: 10,
-        minAbbrConceptPopularity: 14,
-        minOneWordConceptPopularity: 14,
+        minConceptPopularity: 2,
+        minAbbrConceptPopularity: 4,
+        minOneWordConceptPopularity: 4,
+        minRootConceptPopularity: 10,
+        minRootAbbrConceptPopularity: 14,
+        minRootOneWordConceptPopularity: 14,
     };
 
     return seriesPromise(files, file => getConcepts(join(dir, file), locale).then(concepts => pushConcepts.execute(concepts)))

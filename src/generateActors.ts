@@ -1,5 +1,5 @@
 import { Locale } from "./utils";
-import { IConceptRepository, ConceptActor, WikiEntityType, ProcessConcepts, ProcessConceptsOptions } from "@textactor/concept-domain";
+import { IConceptRepository, ConceptActor, WikiEntityType, ProcessConcepts, ProcessConceptsOptions, IConceptRootNameRepository } from "@textactor/concept-domain";
 import { MemoryActorRepository, SaveActor, MemoryActorNameRepository, Actor, ActorHelper, ActorType, CreatingActorData } from '@textactor/actor-domain';
 import { formatActorsFile, formatConceptActorsFile } from "./data";
 import { writeFileSync } from "fs";
@@ -7,7 +7,7 @@ import { FileWikiEntityRepository } from "./fileWikiEntityRepository";
 import { FileWikiSearchNameRepository } from "./fileWikiSearchNameRepository";
 import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
 
-export async function generateActors(locale: Locale, conceptRepository: IConceptRepository): Promise<void> {
+export async function generateActors(locale: Locale, conceptRepository: IConceptRepository, rootNameRep: IConceptRootNameRepository): Promise<void> {
     const wikiRepository = new FileWikiEntityRepository(locale);
     const actorRepository = new MemoryActorRepository();
     const actorNameRepository = new MemoryActorNameRepository();
@@ -16,6 +16,7 @@ export async function generateActors(locale: Locale, conceptRepository: IConcept
     const saveActor = new SaveActor(actorRepository, actorNameRepository);
     const processConcepts = new ProcessConcepts(locale,
         conceptRepository,
+        rootNameRep,
         wikiRepository,
         wikiSearchNameRepository,
         wikiTitleRepository);
@@ -23,9 +24,12 @@ export async function generateActors(locale: Locale, conceptRepository: IConcept
     const conceptActors: ConceptActor[] = [];
 
     const processOptions: ProcessConceptsOptions = {
-        minConceptPopularity: 8,
-        minAbbrConceptPopularity: 12,
-        minOneWordConceptPopularity: 12,
+        minConceptPopularity: 1,
+        minAbbrConceptPopularity: 4,
+        minOneWordConceptPopularity: 4,
+        minRootConceptPopularity: 8,
+        minRootAbbrConceptPopularity: 12,
+        minRootOneWordConceptPopularity: 12,
     };
 
     await wikiRepository.init();

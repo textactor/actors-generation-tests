@@ -3,14 +3,13 @@ require('dotenv').config();
 
 import { createLocale } from "./utils";
 import { parse as parseConcepts } from 'concepts-parser';
-import { Locale, Concept, PushContextConcepts, ConceptHelper } from "@textactor/concept-domain";
+import { Locale, Concept, PushContextConcepts, ConceptHelper, MemoryConceptRepository, MemoryRootNameRepository } from "@textactor/concept-domain";
 import { generateActors } from "./generateActors";
 import { formatArticlesDir } from "./data";
 import { readdirSync, readFile } from "fs";
 import { seriesPromise } from "@textactor/domain";
 import { join } from "path";
 import { WebArticle } from "./fetchArticles";
-import { FileConceptRepository } from "./fileConceptRepository";
 
 let [, , localeArg] = process.argv;
 
@@ -20,16 +19,16 @@ if (!localeArg || localeArg.length !== 5) {
 
 const locale = createLocale(localeArg.split('-')[0], localeArg.split('-')[1]);
 
-const conceptRepository = new FileConceptRepository(locale);
+const conceptRepository = new MemoryConceptRepository();
+const rootNameRep = new MemoryRootNameRepository();
 
 loadConcepts()
-    .then(() => generateActors(locale, conceptRepository))
+    .then(() => generateActors(locale, conceptRepository, rootNameRep))
     .then(() => console.log(`DONE! Saved actors`))
     .catch(error => console.error(error))
-    .then(() => conceptRepository.close());
 
 function loadConcepts() {
-    const pushConcepts = new PushContextConcepts(conceptRepository);
+    const pushConcepts = new PushContextConcepts(conceptRepository, rootNameRep);
 
     const dir = formatArticlesDir(locale);
     const files = readdirSync(dir);
