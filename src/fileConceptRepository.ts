@@ -52,6 +52,16 @@ export class FileConceptRepository implements IConceptRepository {
         return Promise.resolve(list.length);
     }
 
+    deleteByRootNameHash(hashes: string[]): Promise<number> {
+        const list: Concept[] = this.dbItems.find({ rootNameHash: { $in: hashes } });
+
+        for (let item of list) {
+            this.dbItems.remove(item);
+        }
+
+        return Promise.resolve(list.length);
+    }
+
     list(_locale: Locale, limit: number, skip?: number): Promise<Concept[]> {
         skip = skip || 0;
         const list: Concept[] = this.dbItems.find().slice(skip, limit);
@@ -188,7 +198,7 @@ export class FileConceptRepository implements IConceptRepository {
 
         return Promise.resolve(item.popularity);
     }
-    async createOrIncrement(concept: Concept): Promise<Concept> {
+    async createOrUpdate(concept: Concept): Promise<Concept> {
         concept = { ...concept };
         const id = concept.id;
         let item = this.dbItems.findOne({ id }) as Concept;
