@@ -24,10 +24,10 @@ export async function generateActors(locale: Locale, conceptRepository: IConcept
     const conceptActors: ConceptActor[] = [];
 
     const processOptions: ProcessConceptsOptions = {
-        minConceptPopularity: 1,
+        minConceptPopularity: 2,
         minAbbrConceptPopularity: 4,
         minOneWordConceptPopularity: 4,
-        minRootConceptPopularity: 8,
+        minRootConceptPopularity: 5,
         minRootAbbrConceptPopularity: 12,
         minRootOneWordConceptPopularity: 12,
     };

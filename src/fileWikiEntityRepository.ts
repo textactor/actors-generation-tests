@@ -49,6 +49,12 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
         return Promise.resolve(uniq(list));
     }
 
+    getByPartialNameHash(hash: string): Promise<WikiEntity[]> {
+        const list: WikiEntity[] = this.dbItems.where(item => item.partialNamesHashes.indexOf(hash) > -1);
+
+        return Promise.resolve(list);
+    }
+
     getByNameHash(hash: string): Promise<WikiEntity[]> {
         const list: WikiEntity[] = this.dbItems.where(item => item.namesHashes.indexOf(hash) > -1);
 
