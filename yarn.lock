@@ -215,7 +215,7 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
-atonic@^1.0.4:
+atonic@^1.0.4, atonic@^1.x.x:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/atonic/-/atonic-1.0.4.tgz#7db3f216070abb68660f18122a380903e09d27c7"
 
@@ -888,16 +888,16 @@ concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
 
-concepts-data@^0.3.x:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/concepts-data/-/concepts-data-0.3.2.tgz#f2cdbcd33c8b9a7b10c4777ef934a7e81b4502f7"
+concepts-data@^0.4.x:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/concepts-data/-/concepts-data-0.4.0.tgz#edff746110673178c247cd8b4e24b92082494a56"
 
-concepts-parser@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/concepts-parser/-/concepts-parser-1.1.3.tgz#a84466c161ac26695dff91f2829e0bf97ae05e0c"
+concepts-parser@^1.2.x:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/concepts-parser/-/concepts-parser-1.2.0.tgz#e4a2589b8dbeda588bd2627636f07a54ab746f88"
   dependencies:
-    atonic "^1.0.4"
-    concepts-data "^0.3.x"
+    atonic "^1.x.x"
+    concepts-data "^0.4.x"
 
 concordance@^3.0.0:
   version "3.0.0"
