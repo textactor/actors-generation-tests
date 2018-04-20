@@ -24,11 +24,11 @@ export async function generateActors(locale: Locale, conceptRepository: IConcept
     const conceptActors: ConceptActor[] = [];
 
     const processOptions: ProcessConceptsOptions = {
-        minConceptPopularity: 2,
-        minAbbrConceptPopularity: 4,
-        minOneWordConceptPopularity: 4,
-        minRootConceptPopularity: 5,
-        minRootAbbrConceptPopularity: 12,
+        minConceptPopularity: 1,
+        minAbbrConceptPopularity: 6,
+        minOneWordConceptPopularity: 6,
+        minRootConceptPopularity: 6,
+        minRootAbbrConceptPopularity: 10,
         minRootOneWordConceptPopularity: 12,
     };
 
@@ -54,7 +54,6 @@ export async function generateActors(locale: Locale, conceptRepository: IConcept
 
 function conceptActorToActor(conceptActor: ConceptActor): Actor {
     const actorData: CreatingActorData = {
-        abbr: conceptActor.abbr,
         name: conceptActor.name,
         names: conceptActor.names,
         type: conceptActor.wikiEntity && wikiTypeToActorType(conceptActor.wikiEntity.type),
