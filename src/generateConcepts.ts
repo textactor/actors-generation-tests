@@ -45,12 +45,19 @@ function getConcepts(file: string, locale: Locale): Promise<Concept[]> {
     return getText(file).then(text => {
         const concepts = parseConcepts({ text, ...locale }, { mode: 'collect' });
         const list: Concept[] = [];
+
         for (let concept of concepts) {
-            list.push(ConceptHelper.create({ text: concept.value, abbr: concept.abbr, ...locale }));
+            const context = getContextFromText(text, concept.index, concept.value.length);
+            list.push(ConceptHelper.create({ name: concept.value, abbr: concept.abbr, context, ...locale }));
         }
 
         return list;
     });
+}
+
+function getContextFromText(text: string, index: number, length: number): string {
+    const start = index < 50 ? 0 : index - 50;
+    return text.substring(start, index + length + 50);
 }
 
 function getText(file: string): Promise<string> {

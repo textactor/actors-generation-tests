@@ -1,6 +1,6 @@
 import { Locale } from "./utils";
-import { IConceptRepository, ConceptActor, WikiEntityType, ProcessConcepts, ProcessConceptsOptions, IConceptRootNameRepository } from "@textactor/concept-domain";
-import { MemoryActorRepository, SaveActor, MemoryActorNameRepository, Actor, ActorHelper, ActorType, CreatingActorData } from '@textactor/actor-domain';
+import { IConceptRepository, ConceptActor, WikiEntityType, ProcessConcepts, ProcessConceptsOptions, IConceptRootNameRepository, WikiEntity } from "@textactor/concept-domain";
+import { MemoryActorRepository, SaveActor, MemoryActorNameRepository, ActorType, KnownActorData } from '@textactor/actor-domain';
 import { formatActorsFile, formatConceptActorsFile } from "./data";
 import { writeFileSync } from "fs";
 import { FileWikiEntityRepository } from "./fileWikiEntityRepository";
@@ -52,17 +52,27 @@ export async function generateActors(locale: Locale, conceptRepository: IConcept
     await wikiTitleRepository.close();
 }
 
-function conceptActorToActor(conceptActor: ConceptActor): Actor {
-    const actorData: CreatingActorData = {
+function conceptActorToActor(conceptActor: ConceptActor) {
+    const actorData: KnownActorData = {
         name: conceptActor.name,
-        names: conceptActor.names,
+        names: conceptActor.names.map(name => ({ name })),
         type: conceptActor.wikiEntity && wikiTypeToActorType(conceptActor.wikiEntity.type),
         country: conceptActor.country,
         lang: conceptActor.lang,
-        wikiDataId: conceptActor.wikiEntity && conceptActor.wikiEntity.wikiDataId,
+        wikiEntity: conceptActor.wikiEntity && wikiEntityToActorData(conceptActor.wikiEntity),
+        context: conceptActor.context,
     };
 
-    return ActorHelper.create(actorData);
+    return actorData;
+}
+
+function wikiEntityToActorData(wikiEntity: WikiEntity) {
+    return {
+        name: wikiEntity.name,
+        wikiDataId: wikiEntity.wikiDataId,
+        wikiPageTitle: wikiEntity.wikiPageTitle,
+        countryCode: wikiEntity.countryCode,
+    }
 }
 
 function wikiTypeToActorType(wikiType: WikiEntityType): ActorType {

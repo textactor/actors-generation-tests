@@ -33,7 +33,8 @@ function loadConcepts() {
     const dir = formatArticlesDir(locale);
     const files = readdirSync(dir);
 
-    return seriesPromise(files, file => getConcepts(join(dir, file), locale).then(concepts => pushConcepts.execute(concepts)))
+    return seriesPromise(files, file => getConcepts(join(dir, file), locale)
+        .then(concepts => pushConcepts.execute(concepts)));
 }
 
 function getConcepts(file: string, locale: Locale): Promise<Concept[]> {
@@ -41,11 +42,18 @@ function getConcepts(file: string, locale: Locale): Promise<Concept[]> {
         const concepts = parseConcepts({ text, ...locale }, { mode: 'collect' });
         const list: Concept[] = [];
         for (let concept of concepts) {
-            list.push(ConceptHelper.create({ text: concept.value, abbr: concept.abbr, ...locale }));
+            const context = getContextFromText(text, concept.index, concept.value.length);
+            list.push(ConceptHelper.create({ name: concept.value, context, abbr: concept.abbr, ...locale }));
         }
 
         return list;
     });
+}
+
+
+function getContextFromText(text: string, index: number, length: number): string {
+    const start = index < 50 ? 0 : index - 50;
+    return text.substring(start, index + length + 50);
 }
 
 function getText(file: string): Promise<string> {
