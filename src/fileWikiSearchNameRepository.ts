@@ -39,14 +39,7 @@ export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
         })
     }
     getById(id: string): Promise<WikiSearchName> {
-        return Promise.resolve(this.dbItems.findOne({ id }))
-            .then(item => {
-                if (item) {
-                    item.createdAt = new Date(item.createdAt);
-                    item.lastSearchAt = new Date(item.lastSearchAt);
-                }
-                return item;
-            });
+        return Promise.resolve(this.dbItems.findOne({ id }));
     }
     getByIds(ids: string[]): Promise<WikiSearchName[]> {
         const list: WikiSearchName[] = this.dbItems.find({ id: { $in: ids } });

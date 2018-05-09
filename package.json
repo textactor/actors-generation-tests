@@ -47,9 +47,8 @@
     "typescript": "latest"
   },
   "dependencies": {
-    "@textactor/domain": "^0.1.2",
+    "@textactor/domain": "^0.1.4",
     "ascrape": "^0.2.0",
-    "concepts-parser": "^1.2.x",
     "lokijs": "^1.5.3",
     "mkdirp": "^0.5.1",
     "node-fetch": "^2.1.2"

@@ -39,14 +39,7 @@ export class FileWikiTitleRepository implements IWikiTitleRepository {
         })
     }
     getById(id: string): Promise<WikiTitle> {
-        return Promise.resolve(this.dbItems.findOne({ id }))
-            .then(item => {
-                if (item) {
-                    item.createdAt = new Date(item.createdAt);
-                    item.lastSearchAt = new Date(item.lastSearchAt);
-                }
-                return item;
-            });
+        return Promise.resolve(this.dbItems.findOne({ id }));
     }
     getByIds(ids: string[]): Promise<WikiTitle[]> {
         const list: WikiTitle[] = this.dbItems.find({ id: { $in: ids } });

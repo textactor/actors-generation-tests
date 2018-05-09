@@ -44,12 +44,11 @@
   dependencies:
     arrify "^1.0.1"
 
-"@textactor/domain@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@textactor/domain/-/domain-0.1.2.tgz#30ff86f500ae210fb0bc0b7f0713786cc0864e25"
+"@textactor/domain@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@textactor/domain/-/domain-0.1.4.tgz#6dc901d7442ed83e64866578a729cf386e288471"
   dependencies:
     atonic "^1.0.4"
-    root-name "^0.1.0"
     slugify "^1.2.9"
     standard-text "^0.1.1"
 
@@ -215,7 +214,7 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
-atonic@^1.0.4, atonic@^1.x.x:
+atonic@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/atonic/-/atonic-1.0.4.tgz#7db3f216070abb68660f18122a380903e09d27c7"
 
@@ -887,17 +886,6 @@ commondir@^1.0.1:
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
-
-concepts-data@^0.4.x:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/concepts-data/-/concepts-data-0.4.0.tgz#edff746110673178c247cd8b4e24b92082494a56"
-
-concepts-parser@^1.2.x:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/concepts-parser/-/concepts-parser-1.2.0.tgz#e4a2589b8dbeda588bd2627636f07a54ab746f88"
-  dependencies:
-    atonic "^1.x.x"
-    concepts-data "^0.4.x"
 
 concordance@^3.0.0:
   version "3.0.0"
@@ -2699,10 +2687,6 @@ rimraf@2, rimraf@^2.5.1, rimraf@^2.6.1, rimraf@^2.6.2:
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.2.tgz#2ed8150d24a16ea8651e6d6ef0f47c4158ce7a36"
   dependencies:
     glob "^7.0.5"
-
-root-name@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/root-name/-/root-name-0.1.0.tgz#ecbcce8a65c134d7b39c18e4511f1ed7b80f8018"
 
 safe-buffer@^5.0.1, safe-buffer@^5.1.1, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.1"

@@ -1,15 +1,26 @@
 
-import { RepUpdateData, uniq } from '@textactor/domain';
+import { RepUpdateData } from '@textactor/domain';
 import * as Loki from 'lokijs';
 import { IWikiEntityRepository, Locale, WikiEntity } from '@textactor/concept-domain';
 import { formatWikiEntitiesFile } from './data';
 
 export class FileWikiEntityRepository implements IWikiEntityRepository {
+
     private db: Loki;
     private dbItems: Collection<WikiEntity>;
 
     constructor(locale: Locale) {
         this.db = new Loki(formatWikiEntitiesFile(locale), { autosave: true, autoload: false });
+    }
+
+    getInvalidPartialNames(_lang: string): Promise<string[]> {
+        return Promise.resolve([]);
+    }
+    createOrUpdate(data: WikiEntity): Promise<WikiEntity> {
+        if (this.dbItems.findOne({ id: data.id })) {
+            return this.update({ item: data });
+        }
+        return this.create(data);
     }
 
     init() {
@@ -43,14 +54,8 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
         return Promise.resolve(this.dbItems.count());
     }
 
-    getLastnames(lang: string): Promise<string[]> {
-        const list: string[] = this.dbItems.where(item => item.lang === lang && !!item.lastname).map(item => item.lastname);
-
-        return Promise.resolve(uniq(list));
-    }
-
     getByPartialNameHash(hash: string): Promise<WikiEntity[]> {
-        const list: WikiEntity[] = this.dbItems.where(item => item.partialNamesHashes.indexOf(hash) > -1);
+        const list: WikiEntity[] = this.dbItems.where(item => item.partialNamesHashes && item.partialNamesHashes.indexOf(hash) > -1);
 
         return Promise.resolve(list);
     }

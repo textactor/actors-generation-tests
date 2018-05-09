@@ -1,21 +1,21 @@
 
-import { parse as parseConcepts } from 'concepts-parser';
+import { ConceptCollector } from '@textactor/concept-collector';
 import { Locale } from './utils';
 import { readdirSync, readFile } from 'fs';
 import { formatArticlesDir } from './data';
 import { WebArticle } from './fetchArticles';
 import { seriesPromise } from '@textactor/domain';
 import {
-    Concept,
-    ConceptHelper,
     PushContextConcepts,
     DeleteUnpopularConcepts,
     MemoryRootNameRepository,
     MemoryConceptRepository,
+    ConceptContainer,
 } from '@textactor/concept-domain';
 import { join } from 'path';
 
-export function generateConcepts(locale: Locale): Promise<number> {
+export function generateConcepts(container: ConceptContainer): Promise<number> {
+    const locale: Locale = { lang: container.lang, country: container.country };
     const dir = formatArticlesDir(locale);
     const files = readdirSync(dir);
 
@@ -23,7 +23,8 @@ export function generateConcepts(locale: Locale): Promise<number> {
     const rootNameRep = new MemoryRootNameRepository();
 
     const pushConcepts = new PushContextConcepts(conceptRepository, rootNameRep);
-    const deleteUnpopularConcepts = new DeleteUnpopularConcepts(locale, conceptRepository, rootNameRep);
+    const conceptCollect = new ConceptCollector(pushConcepts);
+    const deleteUnpopularConcepts = new DeleteUnpopularConcepts(container, conceptRepository, rootNameRep);
 
     const processOptions = {
         minConceptPopularity: 2,
@@ -34,23 +35,12 @@ export function generateConcepts(locale: Locale): Promise<number> {
         minRootOneWordConceptPopularity: 14,
     };
 
-    return seriesPromise(files, file => getConcepts(join(dir, file), locale).then(concepts => pushConcepts.execute(concepts)))
+    return seriesPromise(files, file => getText(join(dir, file))
+        .then(text => conceptCollect.execute({ text, lang: locale.lang, country: locale.country, containerId: container.id })))
         .then(() => conceptRepository.count(locale))
         .then(totalConcepts => console.log(`concepts before deleting: ${totalConcepts}`))
         .then(() => deleteUnpopularConcepts.execute(processOptions))
         .then(() => conceptRepository.count(locale));
-}
-
-function getConcepts(file: string, locale: Locale): Promise<Concept[]> {
-    return getText(file).then(text => {
-        const concepts = parseConcepts({ text, ...locale }, { mode: 'collect' });
-        const list: Concept[] = [];
-        for (let concept of concepts) {
-            list.push(ConceptHelper.create({ text: concept.value, abbr: concept.abbr, ...locale }));
-        }
-
-        return list;
-    });
 }
 
 function getText(file: string): Promise<string> {
