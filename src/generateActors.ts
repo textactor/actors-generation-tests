@@ -29,11 +29,11 @@ export async function generateActors(container: ConceptContainer, containerRep: 
     const conceptActors: ConceptActor[] = [];
 
     const processOptions: ProcessConceptsOptions = {
-        minConceptPopularity: 2,
-        minAbbrConceptPopularity: 4,
-        minOneWordConceptPopularity: 4,
-        minRootConceptPopularity: 5,
-        minRootAbbrConceptPopularity: 12,
+        minConceptPopularity: 1,
+        minAbbrConceptPopularity: 6,
+        minOneWordConceptPopularity: 6,
+        minRootConceptPopularity: 6,
+        minRootAbbrConceptPopularity: 10,
         minRootOneWordConceptPopularity: 12,
     };
 

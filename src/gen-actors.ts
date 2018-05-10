@@ -32,7 +32,7 @@ async function loadConcepts() {
     const pushConcepts = new PushContextConcepts(conceptRepository, rootNameRep);
     const conceptCollector = new ConceptCollector(pushConcepts);
 
-    let container = ConceptContainerHelper.build({ name: 'test', uniqueName: 'test', ...locale });
+    let container = ConceptContainerHelper.build({ name: 'test', uniqueName: 'test', ownerId: 'ournet', ...locale });
 
     container = await containerRep.create(container);
 
