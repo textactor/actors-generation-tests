@@ -8,8 +8,9 @@ import { FileWikiSearchNameRepository } from "./fileWikiSearchNameRepository";
 import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
 import { NameHelper } from "@textactor/domain";
 import { CountryTagsService } from "./countryTagsService";
+import { KnownNameService } from '@textactor/known-names';
 
-export async function generateActors(container: ConceptContainer, containerRep: IConceptContainerRepository,conceptRepository: IConceptRepository, rootNameRep: IConceptRootNameRepository): Promise<void> {
+export async function generateActors(container: ConceptContainer, containerRep: IConceptContainerRepository, conceptRepository: IConceptRepository, rootNameRep: IConceptRootNameRepository): Promise<void> {
     const locale: Locale = { lang: container.lang, country: container.country };
     const wikiRepository = new FileWikiEntityRepository(locale);
     const actorRepository = new MemoryActorRepository();
@@ -24,7 +25,8 @@ export async function generateActors(container: ConceptContainer, containerRep: 
         wikiRepository,
         wikiSearchNameRepository,
         wikiTitleRepository,
-        new CountryTagsService());
+        new CountryTagsService(),
+        new KnownNameService());
 
     const conceptActors: ConceptActor[] = [];
 
@@ -32,9 +34,9 @@ export async function generateActors(container: ConceptContainer, containerRep: 
         minConceptPopularity: 1,
         minAbbrConceptPopularity: 6,
         minOneWordConceptPopularity: 6,
-        minRootConceptPopularity: 6,
-        minRootAbbrConceptPopularity: 10,
-        minRootOneWordConceptPopularity: 12,
+        minRootConceptPopularity: 2,
+        minRootAbbrConceptPopularity: 6,
+        minRootOneWordConceptPopularity: 6,
     };
 
     await wikiRepository.init();
@@ -45,7 +47,7 @@ export async function generateActors(container: ConceptContainer, containerRep: 
         conceptActors.push(conceptActor);
         if (isValidActor(conceptActor)) {
             const actor = conceptActorToActor(conceptActor);
-            return saveActor.execute(actor).then(() => { })
+            return saveActor.execute(actor);
         }
     }, processOptions)
         .then(() => actorRepository.all())

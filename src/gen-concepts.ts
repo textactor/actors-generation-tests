@@ -9,7 +9,7 @@ if (!localeArg || localeArg.length !== 5) {
 }
 
 const locale = createLocale(localeArg.split('-')[0], localeArg.split('-')[1]);
-const container = ConceptContainerHelper.build({ name: 'test', uniqueName: 'test', ...locale });
+const container = ConceptContainerHelper.build({ ownerId: 'eu', name: 'test', uniqueName: 'test', ...locale });
 
 generateConcepts(container)
     .then(total => console.log(`DONE! Saved ${total} concepts`))

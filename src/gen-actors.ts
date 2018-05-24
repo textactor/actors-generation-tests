@@ -10,6 +10,7 @@ import { seriesPromise } from "@textactor/domain";
 import { join } from "path";
 import { WebArticle } from "./fetchArticles";
 import { ConceptCollector } from '@textactor/concept-collector';
+import { KnownNameService } from '@textactor/known-names';
 
 let [, , localeArg] = process.argv;
 
@@ -22,6 +23,8 @@ const locale = createLocale(localeArg.split('-')[0], localeArg.split('-')[1]);
 const conceptRepository = new MemoryConceptRepository();
 const rootNameRep = new MemoryRootNameRepository();
 const containerRep = new MemoryConceptContainerRepository();
+const knownNamesService = new KnownNameService();
+
 
 loadConcepts()
     .then(container => generateActors(container, containerRep, conceptRepository, rootNameRep))
@@ -30,7 +33,7 @@ loadConcepts()
 
 async function loadConcepts() {
     const pushConcepts = new PushContextConcepts(conceptRepository, rootNameRep);
-    const conceptCollector = new ConceptCollector(pushConcepts);
+    const conceptCollector = new ConceptCollector(pushConcepts, knownNamesService);
 
     let container = ConceptContainerHelper.build({ name: 'test', uniqueName: 'test', ownerId: 'ournet', ...locale });
 
@@ -56,6 +59,8 @@ async function loadConcepts() {
     }
 
     container = await containerRep.update({ item: { id: container.id, status: ConceptContainerStatus.COLLECT_DONE } });
+
+    console.log(`Loaded concepts`)
 
     return container;
 }

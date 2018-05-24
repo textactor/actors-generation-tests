@@ -13,6 +13,7 @@ import {
     ConceptContainer,
 } from '@textactor/concept-domain';
 import { join } from 'path';
+import { KnownNameService } from '@textactor/known-names';
 
 export function generateConcepts(container: ConceptContainer): Promise<number> {
     const locale: Locale = { lang: container.lang, country: container.country };
@@ -23,7 +24,7 @@ export function generateConcepts(container: ConceptContainer): Promise<number> {
     const rootNameRep = new MemoryRootNameRepository();
 
     const pushConcepts = new PushContextConcepts(conceptRepository, rootNameRep);
-    const conceptCollect = new ConceptCollector(pushConcepts);
+    const conceptCollect = new ConceptCollector(pushConcepts, new KnownNameService());
     const deleteUnpopularConcepts = new DeleteUnpopularConcepts(container, conceptRepository, rootNameRep);
 
     const processOptions = {
