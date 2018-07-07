@@ -1,64 +1,48 @@
+
 import { Locale } from "./utils";
-import { IConceptRepository, ConceptActor, WikiEntityType, ProcessConcepts, ProcessConceptsOptions, IConceptRootNameRepository, ConceptContainer, IConceptContainerRepository } from "@textactor/concept-domain";
 import { MemoryActorRepository, SaveActor, MemoryActorNameRepository, ActorType, KnownActorData } from '@textactor/actor-domain';
 import { formatActorsFile, formatConceptActorsFile } from "./data";
 import { writeFileSync } from "fs";
-import { FileWikiEntityRepository } from "./fileWikiEntityRepository";
-import { FileWikiSearchNameRepository } from "./fileWikiSearchNameRepository";
-import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
-import { NameHelper } from "@textactor/domain";
-import { CountryTagsService } from "./countryTagsService";
-import { KnownNameService } from '@textactor/known-names';
+import { IExplorerApi, INewDataContainer, Actor as ConceptActor, WikiEntityType } from "textactor-explorer";
 
-export async function generateActors(container: ConceptContainer, containerRep: IConceptContainerRepository, conceptRepository: IConceptRepository, rootNameRep: IConceptRootNameRepository): Promise<void> {
+export async function generateActors(explorerApi: IExplorerApi, dataContainer: INewDataContainer): Promise<void> {
+    const container = dataContainer.container();
+
     const locale: Locale = { lang: container.lang, country: container.country };
-    const wikiRepository = new FileWikiEntityRepository(locale);
     const actorRepository = new MemoryActorRepository();
     const actorNameRepository = new MemoryActorNameRepository();
-    const wikiSearchNameRepository = new FileWikiSearchNameRepository(locale);
-    const wikiTitleRepository = new FileWikiTitleRepository(locale);
     const saveActor = new SaveActor(actorRepository, actorNameRepository);
-    const processConcepts = new ProcessConcepts(container,
-        containerRep,
-        conceptRepository,
-        rootNameRep,
-        wikiRepository,
-        wikiSearchNameRepository,
-        wikiTitleRepository,
-        new CountryTagsService(),
-        new KnownNameService());
 
     const conceptActors: ConceptActor[] = [];
 
-    const processOptions: ProcessConceptsOptions = {
+    const explorer = explorerApi.newExplorer(container.id, {
         minConceptPopularity: 1,
         minAbbrConceptPopularity: 6,
         minOneWordConceptPopularity: 6,
         minRootConceptPopularity: 2,
         minRootAbbrConceptPopularity: 6,
         minRootOneWordConceptPopularity: 6,
-    };
+    })
 
-    await wikiRepository.init();
-    await wikiSearchNameRepository.init();
-    await wikiTitleRepository.init();
-
-    await processConcepts.execute((conceptActor: ConceptActor) => {
+    explorer.onData(async (conceptActor: ConceptActor) => {
         conceptActors.push(conceptActor);
         if (isValidActor(conceptActor)) {
             const actor = conceptActorToActor(conceptActor);
-            return saveActor.execute(actor);
+            await saveActor.execute(actor);
         }
-    }, processOptions)
-        .then(() => actorRepository.all())
-        .then(actors => {
-            writeFileSync(formatActorsFile(locale), JSON.stringify(actors), 'utf8');
-            writeFileSync(formatConceptActorsFile(locale), JSON.stringify(conceptActors), 'utf8');
-        });
+    });
 
-    await wikiRepository.close();
-    await wikiSearchNameRepository.close();
-    await wikiTitleRepository.close();
+    explorer.onError(error => console.error(error));
+
+    await new Promise(resolve => {
+        explorer.onEnd(resolve);
+        explorer.start();
+    });
+
+    const actors = await actorRepository.all();
+
+    writeFileSync(formatActorsFile(locale), JSON.stringify(actors), 'utf8');
+    writeFileSync(formatConceptActorsFile(locale), JSON.stringify(conceptActors), 'utf8');
 }
 
 function isValidActor(conceptActor: ConceptActor) {
@@ -67,7 +51,7 @@ function isValidActor(conceptActor: ConceptActor) {
     }
 
     if (!conceptActor.wikiEntity.type) {
-        if (NameHelper.countWords(conceptActor.wikiEntity.name) < 2) {
+        if (conceptActor.wikiEntity.name.split(/\s+/g).length < 2) {
             // debug(`actor no type and too short: ${conceptActor.wikiEntity.name}`);
             return false;
         }

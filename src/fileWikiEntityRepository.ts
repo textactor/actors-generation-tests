@@ -1,8 +1,8 @@
 
-import { RepUpdateData } from '@textactor/domain';
 import * as Loki from 'lokijs';
-import { IWikiEntityRepository, Locale, WikiEntity } from '@textactor/concept-domain';
 import { formatWikiEntitiesFile } from './data';
+import { WikiEntity, IWikiEntityRepository, RepUpdateData } from 'textactor-explorer';
+import { Locale } from './utils';
 
 export class FileWikiEntityRepository implements IWikiEntityRepository {
 
@@ -18,7 +18,7 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
     }
     createOrUpdate(data: WikiEntity): Promise<WikiEntity> {
         if (this.dbItems.findOne({ id: data.id })) {
-            return this.update({ item: data });
+            return this.update({ id: data.id, set: data });
         }
         return this.create(data);
     }
@@ -31,7 +31,7 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
                 }
                 this.dbItems = this.db.getCollection<WikiEntity>('wikientities');
                 if (!this.dbItems) {
-                    this.dbItems = this.db.addCollection('wikientities', { unique: ['id'] });
+                    this.dbItems = <Collection<WikiEntity>>this.db.addCollection('wikientities', { unique: ['id'] });
                 }
 
                 resolve();
@@ -88,16 +88,17 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
 
         return Promise.resolve(data);
     }
-    update(data: RepUpdateData<WikiEntity>): Promise<WikiEntity> {
-        const item = this.dbItems.findOne({ id: data.item.id });
+    update(data: RepUpdateData<string, WikiEntity>): Promise<WikiEntity> {
+        const item = this.dbItems.findOne({ id: data.id });
         if (!item) {
             return Promise.resolve(null);
-            // return Promise.reject(new Error(`Item not found! id=${data.item.id}`));
         }
 
-        for (let prop in data.item) {
-            if ([null, undefined].indexOf((<any>data.item)[prop]) < 0) {
-                (<any>item)[prop] = (<any>data.item)[prop];
+        if (data.set) {
+            for (let prop in data.set) {
+                if ([null, undefined].indexOf((<any>data.set)[prop]) < 0) {
+                    (<any>item)[prop] = (<any>data.set)[prop];
+                }
             }
         }
 

@@ -1,8 +1,8 @@
 
-import { RepUpdateData } from '@textactor/domain';
 import * as Loki from 'lokijs';
-import { IWikiSearchNameRepository, Locale, WikiSearchName } from '@textactor/concept-domain';
 import { formatWikiSearchNamesFile } from './data';
+import { IWikiSearchNameRepository, WikiSearchName, RepUpdateData } from 'textactor-explorer';
+import { Locale } from './utils';
 
 export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
     private db: Loki;
@@ -20,7 +20,7 @@ export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
                 }
                 this.dbItems = this.db.getCollection<WikiSearchName>('names');
                 if (!this.dbItems) {
-                    this.dbItems = this.db.addCollection('names', { unique: ['id'] });
+                    this.dbItems = <Collection<WikiSearchName>>this.db.addCollection('names', { unique: ['id'] });
                 }
 
                 resolve();
@@ -61,18 +61,20 @@ export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
 
         return Promise.resolve(data);
     }
-    update(data: RepUpdateData<WikiSearchName>): Promise<WikiSearchName> {
-        const item = this.dbItems.findOne({ id: data.item.id });
+    update(data: RepUpdateData<string, WikiSearchName>): Promise<WikiSearchName> {
+        const item = this.dbItems.findOne({ id: data.id });
         if (!item) {
             return Promise.resolve(null);
             // return Promise.reject(new Error(`Item not found! id=${data.item.id}`));
         }
 
-        delete data.item.createdAt;
+        if (data.set) {
+            delete data.set.createdAt;
 
-        for (let prop in data.item) {
-            if ([null, undefined].indexOf((<any>data.item)[prop]) < 0) {
-                (<any>item)[prop] = (<any>data.item)[prop];
+            for (let prop in data.set) {
+                if ([null, undefined].indexOf((<any>data.set)[prop]) < 0) {
+                    (<any>item)[prop] = (<any>data.set)[prop];
+                }
             }
         }
 
@@ -88,7 +90,7 @@ export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
     }
     createOrUpdate(data: WikiSearchName): Promise<WikiSearchName> {
         if (!!this.dbItems.findOne({ id: data.id })) {
-            return this.update({ item: data });
+            return this.update({ id: data.id, set: data });
         }
 
         return this.create(data);

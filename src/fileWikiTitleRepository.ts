@@ -1,8 +1,8 @@
 
-import { RepUpdateData } from '@textactor/domain';
 import * as Loki from 'lokijs';
-import { IWikiTitleRepository, Locale, WikiTitle } from '@textactor/concept-domain';
 import { formatWikiTitlesFile } from './data';
+import { IWikiTitleRepository, WikiTitle, RepUpdateData } from 'textactor-explorer';
+import { Locale } from './utils';
 
 export class FileWikiTitleRepository implements IWikiTitleRepository {
     private db: Loki;
@@ -20,7 +20,7 @@ export class FileWikiTitleRepository implements IWikiTitleRepository {
                 }
                 this.dbItems = this.db.getCollection<WikiTitle>('titles');
                 if (!this.dbItems) {
-                    this.dbItems = this.db.addCollection('titles', { unique: ['id'] });
+                    this.dbItems = <Collection<WikiTitle>>this.db.addCollection('titles', { unique: ['id'] });
                 }
 
                 resolve();
@@ -61,18 +61,21 @@ export class FileWikiTitleRepository implements IWikiTitleRepository {
 
         return Promise.resolve(data);
     }
-    update(data: RepUpdateData<WikiTitle>): Promise<WikiTitle> {
-        const item = this.dbItems.findOne({ id: data.item.id });
+    update(data: RepUpdateData<string, WikiTitle>): Promise<WikiTitle> {
+        const item = this.dbItems.findOne({ id: data.id });
         if (!item) {
             return Promise.resolve(null);
             // return Promise.reject(new Error(`Item not found! id=${data.item.id}`));
         }
 
-        delete data.item.createdAt;
+        if (data.set) {
 
-        for (let prop in data.item) {
-            if ([null, undefined].indexOf((<any>data.item)[prop]) < 0) {
-                (<any>item)[prop] = (<any>data.item)[prop];
+            delete data.set.createdAt;
+
+            for (let prop in data.set) {
+                if ([null, undefined].indexOf((<any>data.set)[prop]) < 0) {
+                    (<any>item)[prop] = (<any>data.set)[prop];
+                }
             }
         }
 
@@ -88,7 +91,7 @@ export class FileWikiTitleRepository implements IWikiTitleRepository {
     }
     createOrUpdate(data: WikiTitle): Promise<WikiTitle> {
         if (!!this.dbItems.findOne({ id: data.id })) {
-            return this.update({ item: data });
+            return this.update({ id: data.id, set: data });
         }
 
         return this.create(data);

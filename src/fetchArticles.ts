@@ -2,7 +2,6 @@
 const debug = require('debug')('actors-generation');
 
 import { Locale, createLocale, ensureDirExists } from "./utils";
-import { seriesPromise } from '@textactor/domain';
 import { join } from "path";
 import { formatArticlesDir } from "./data";
 import { writeFile } from "fs";
@@ -16,7 +15,7 @@ export type FetchArticlesOptions = {
     endId: number
 }
 
-export function fetchArticles(options: FetchArticlesOptions): Promise<number> {
+export async function fetchArticles(options: FetchArticlesOptions): Promise<number> {
 
     if (!options || !options.startId || !options.endId || options.startId >= options.endId || typeof options.urlFormat !== 'string' || options.urlFormat.indexOf('ID') < 0) {
         return Promise.reject(new Error(`Invalid options: ${JSON.stringify(options)}`));
@@ -38,8 +37,11 @@ export function fetchArticles(options: FetchArticlesOptions): Promise<number> {
 
     ensureDirExists(dir);
 
-    return seriesPromise(ids, (id: number) => processId(locale, id, urlFormat).then(done => done && total++))
-        .then(() => total);
+    for (let id of ids) {
+        await processId(locale, id, urlFormat).then(done => done && total++)
+    }
+
+    return total;
 }
 
 function processId(locale: Locale, id: number, urlFormat: string): Promise<boolean> {

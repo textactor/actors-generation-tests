@@ -2,15 +2,21 @@
 require('dotenv').config();
 
 import { createLocale } from "./utils";
-import { PushContextConcepts, MemoryConceptRepository, MemoryRootNameRepository, MemoryConceptContainerRepository, ConceptContainerHelper, ConceptContainerStatus } from "@textactor/concept-domain";
 import { generateActors } from "./generateActors";
 import { formatArticlesDir } from "./data";
 import { readdirSync, readFile } from "fs";
-import { seriesPromise } from "@textactor/domain";
 import { join } from "path";
 import { WebArticle } from "./fetchArticles";
-import { ConceptCollector } from '@textactor/concept-collector';
-import { KnownNameService } from '@textactor/known-names';
+
+const explorerMemory = require('textactor-explorer/lib/repositories/memory');
+const { MemoryConceptContainerRepository,
+    MemoryConceptRepository,
+    MemoryRootNameRepository, } = explorerMemory;
+
+import { customExplorer } from "textactor-explorer";
+import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
+import { FileWikiEntityRepository } from "./fileWikiEntityRepository";
+import { FileWikiSearchNameRepository } from "./fileWikiSearchNameRepository";
 
 let [, , localeArg] = process.argv;
 
@@ -20,47 +26,52 @@ if (!localeArg || localeArg.length !== 5) {
 
 const locale = createLocale(localeArg.split('-')[0], localeArg.split('-')[1]);
 
-const conceptRepository = new MemoryConceptRepository();
+const conceptRep = new MemoryConceptRepository();
 const rootNameRep = new MemoryRootNameRepository();
 const containerRep = new MemoryConceptContainerRepository();
-const knownNamesService = new KnownNameService();
+const wikiTitleRep = new FileWikiTitleRepository(locale);
+const entityRep = new FileWikiEntityRepository(locale);
+const searchNameRep = new FileWikiSearchNameRepository(locale);
 
+const explorer = customExplorer({
+    containerRep,
+    conceptRep,
+    rootNameRep,
+    wikiTitleRep,
+    entityRep,
+    searchNameRep,
+})
 
 loadConcepts()
-    .then(container => generateActors(container, containerRep, conceptRepository, rootNameRep))
+    .then(container => generateActors(explorer, container))
     .then(() => console.log(`DONE! Saved actors`))
     .catch(error => console.error(error))
+    .then(() => {
+        return Promise.all([
+            wikiTitleRep.close(),
+            entityRep.close(),
+            searchNameRep.close(),
+        ])
+    });
 
 async function loadConcepts() {
-    const pushConcepts = new PushContextConcepts(conceptRepository, rootNameRep);
-    const conceptCollector = new ConceptCollector(pushConcepts, knownNamesService);
-
-    let container = ConceptContainerHelper.build({ name: 'test', uniqueName: 'test', ownerId: 'ournet', ...locale });
-
-    container = await containerRep.create(container);
+    let container = await explorer.newDataContainer({ name: 'test', uniqueName: 'test', ownerId: 'ournet', ...locale });
 
     const dir = formatArticlesDir(locale);
     const files = readdirSync(dir);
 
-    container = await containerRep.update({ item: { id: container.id, status: ConceptContainerStatus.COLLECTING } });
-
-    try {
-        await seriesPromise(files, file => getText(join(dir, file))
-            .then(text => conceptCollector.execute({ text, lang: locale.lang, country: locale.country, containerId: container.id })));
-    } catch (e) {
-        const error = e.message;
-        container = await containerRep.update({
-            item: {
-                id: container.id, status: ConceptContainerStatus.COLLECT_ERROR,
-                lastError: error
-            }
-        });
-        return Promise.reject(e);
+    for (let file of files) {
+        const text = await getText(join(dir, file));
+        await container.pushText(text);
     }
 
-    container = await containerRep.update({ item: { id: container.id, status: ConceptContainerStatus.COLLECT_DONE } });
+    await container.end();
 
     console.log(`Loaded concepts`)
+
+    await wikiTitleRep.init();
+    await entityRep.init();
+    await searchNameRep.init();
 
     return container;
 }
