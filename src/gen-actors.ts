@@ -10,8 +10,7 @@ import { WebArticle } from "./fetchArticles";
 
 const explorerMemory = require('textactor-explorer/lib/repositories/memory');
 const { MemoryConceptContainerRepository,
-    MemoryConceptRepository,
-    MemoryRootNameRepository, } = explorerMemory;
+    MemoryConceptRepository, } = explorerMemory;
 
 import { customExplorer } from "textactor-explorer";
 import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
@@ -27,7 +26,6 @@ if (!localeArg || localeArg.length !== 5) {
 const locale = createLocale(localeArg.split('-')[0], localeArg.split('-')[1]);
 
 const conceptRep = new MemoryConceptRepository();
-const rootNameRep = new MemoryRootNameRepository();
 const containerRep = new MemoryConceptContainerRepository();
 const wikiTitleRep = new FileWikiTitleRepository(locale);
 const entityRep = new FileWikiEntityRepository(locale);
@@ -36,7 +34,6 @@ const searchNameRep = new FileWikiSearchNameRepository(locale);
 const explorer = customExplorer({
     containerRep,
     conceptRep,
-    rootNameRep,
     wikiTitleRep,
     entityRep,
     searchNameRep,
@@ -51,6 +48,7 @@ loadConcepts()
             wikiTitleRep.close(),
             entityRep.close(),
             searchNameRep.close(),
+            explorer.closeDatabase(),
         ])
     });
 
@@ -66,8 +64,6 @@ async function loadConcepts() {
     }
 
     await container.end();
-
-    console.log(`Loaded concepts`)
 
     await wikiTitleRep.init();
     await entityRep.init();

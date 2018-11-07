@@ -1,9 +1,17 @@
 
 import { Locale } from "./utils";
-import { MemoryActorRepository, SaveActor, MemoryActorNameRepository, ActorType, KnownActorData } from '@textactor/actor-domain';
-import { formatActorsFile, formatConceptActorsFile } from "./data";
+import {
+    MemoryActorRepository,
+    SaveActor,
+    MemoryActorNameRepository,
+    ActorType,
+    KnownActorData,
+    ActorNameType,
+} from '@textactor/actor-domain';
+import { formatActorsFile, formatConceptActorsFile, formatActorNamesFile } from "./data";
 import { writeFileSync } from "fs";
 import { IExplorerApi, INewDataContainer, Actor as ConceptActor, WikiEntityType } from "textactor-explorer";
+import { uniqByProp } from "@textactor/domain";
 
 export async function generateActors(explorerApi: IExplorerApi, dataContainer: INewDataContainer): Promise<void> {
     const container = dataContainer.container();
@@ -18,10 +26,7 @@ export async function generateActors(explorerApi: IExplorerApi, dataContainer: I
     const explorer = explorerApi.newExplorer(container.id, {
         minConceptPopularity: 1,
         minAbbrConceptPopularity: 6,
-        minOneWordConceptPopularity: 6,
-        minRootConceptPopularity: 2,
-        minRootAbbrConceptPopularity: 6,
-        minRootOneWordConceptPopularity: 6,
+        minOneWordConceptPopularity: 5,
     })
 
     explorer.onData(async (conceptActor: ConceptActor) => {
@@ -40,9 +45,11 @@ export async function generateActors(explorerApi: IExplorerApi, dataContainer: I
     });
 
     const actors = await actorRepository.all();
+    const actorNames = await actorNameRepository.all();
 
     writeFileSync(formatActorsFile(locale), JSON.stringify(actors), 'utf8');
     writeFileSync(formatConceptActorsFile(locale), JSON.stringify(conceptActors), 'utf8');
+    writeFileSync(formatActorNamesFile(locale), JSON.stringify(actorNames), 'utf8');
 }
 
 function isValidActor(conceptActor: ConceptActor) {
@@ -69,21 +76,24 @@ function isValidActor(conceptActor: ConceptActor) {
 function conceptActorToActor(conceptActor: ConceptActor) {
     const actorData: KnownActorData = {
         name: conceptActor.name,
-        names: conceptActor.names.map(name => ({ name })),
+        names: [],
         country: conceptActor.country,
         lang: conceptActor.lang,
         type: conceptActor.wikiEntity && conceptWikiTypeToActorType(conceptActor.wikiEntity.type),
-    };
-
-    if (conceptActor.wikiEntity) {
-        actorData.wikiEntity = {
+        wikiEntity: {
             wikiDataId: conceptActor.wikiEntity.wikiDataId,
             description: conceptActor.wikiEntity.description,
             name: conceptActor.wikiEntity.name,
             wikiPageTitle: conceptActor.wikiEntity.wikiPageTitle,
-            // countryCode: conceptActor.wikiEntity.countryCode,
-        };
-    }
+            countLinks: Object.keys(conceptActor.wikiEntity.links).length,
+            countryCodes: conceptActor.wikiEntity.countryCodes,
+        }
+    };
+
+    actorData.names = conceptActor.wikiEntity.names.map(name => ({ name, type: ActorNameType.WIKI }));
+    actorData.names = actorData.names.concat(conceptActor.names.map(name => ({ name, type: ActorNameType.SAME })));
+
+    actorData.names = uniqByProp(actorData.names, 'name');
 
     return actorData;
 }

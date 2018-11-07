@@ -24,6 +24,9 @@ export function formatWikiTitlesFile(locale: Locale) {
 export function formatActorsFile(locale: Locale) {
     return join(formatDataDir(locale), 'actors.json');
 }
+export function formatActorNamesFile(locale: Locale) {
+    return join(formatDataDir(locale), 'actor-names.json');
+}
 
 export function formatConceptActorsFile(locale: Locale) {
     return join(formatDataDir(locale), 'concept-actors.json');
