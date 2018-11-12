@@ -8,11 +8,12 @@ import { readdirSync, readFile } from "fs";
 import { join } from "path";
 import { WebArticle } from "./fetchArticles";
 
-const explorerMemory = require('textactor-explorer/lib/repositories/memory');
-const { MemoryConceptContainerRepository,
-    MemoryConceptRepository, } = explorerMemory;
+import {
+    MemoryConceptContainerRepository,
+    MemoryConceptRepository,
+} from '@textactor/concept-domain/dest/repositories/memory';
 
-import { customExplorer } from "textactor-explorer";
+import { createExplorer } from "@textactor/actors-explorer";
 import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
 import { FileWikiEntityRepository } from "./fileWikiEntityRepository";
 import { FileWikiSearchNameRepository } from "./fileWikiSearchNameRepository";
@@ -31,7 +32,7 @@ const wikiTitleRep = new FileWikiTitleRepository(locale);
 const entityRep = new FileWikiEntityRepository(locale);
 const searchNameRep = new FileWikiSearchNameRepository(locale);
 
-const explorer = customExplorer({
+const explorer = createExplorer({
     containerRep,
     conceptRep,
     wikiTitleRep,
@@ -48,12 +49,11 @@ loadConcepts()
             wikiTitleRep.close(),
             entityRep.close(),
             searchNameRep.close(),
-            explorer.closeDatabase(),
         ])
     });
 
 async function loadConcepts() {
-    let container = await explorer.newDataContainer({ name: 'test', uniqueName: 'test', ownerId: 'ournet', ...locale });
+    let container = await explorer.createCollector({ name: 'test', uniqueName: 'test', ownerId: 'ournet', ...locale });
 
     const dir = formatArticlesDir(locale);
     const files = readdirSync(dir);

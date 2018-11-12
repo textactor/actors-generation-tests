@@ -1,10 +1,17 @@
 
 import * as Loki from 'lokijs';
 import { formatWikiSearchNamesFile } from './data';
-import { IWikiSearchNameRepository, WikiSearchName, RepUpdateData } from 'textactor-explorer';
+import { WikiSearchNameRepository, WikiSearchName } from '@textactor/concept-domain';
 import { Locale } from './utils';
+import { RepositoryUpdateData } from '../../domain/dest';
 
-export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
+export class FileWikiSearchNameRepository implements WikiSearchNameRepository {
+    deleteStorage(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    createStorage(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
     private db: Loki;
     private dbItems: Collection<WikiSearchName>;
 
@@ -49,7 +56,11 @@ export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
         return Promise.resolve(!!this.dbItems.findOne({ id }));
     }
     delete(id: string): Promise<boolean> {
-        return Promise.resolve(!!this.dbItems.remove(this.dbItems.findOne({ id })));
+        const it = this.dbItems.findOne({ id });
+        if (!it) {
+            return Promise.resolve(false);
+        }
+        return Promise.resolve(!!this.dbItems.remove(it));
     }
     create(data: WikiSearchName): Promise<WikiSearchName> {
         if (!!this.dbItems.findOne({ id: data.id })) {
@@ -61,7 +72,7 @@ export class FileWikiSearchNameRepository implements IWikiSearchNameRepository {
 
         return Promise.resolve(data);
     }
-    update(data: RepUpdateData<string, WikiSearchName>): Promise<WikiSearchName> {
+    update(data: RepositoryUpdateData<WikiSearchName>): Promise<WikiSearchName> {
         const item = this.dbItems.findOne({ id: data.id });
         if (!item) {
             return Promise.resolve(null);

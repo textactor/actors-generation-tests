@@ -1,10 +1,17 @@
 
 import * as Loki from 'lokijs';
 import { formatWikiEntitiesFile } from './data';
-import { WikiEntity, IWikiEntityRepository, RepUpdateData } from 'textactor-explorer';
 import { Locale } from './utils';
+import { WikiEntityRepository, WikiEntity, } from '@textactor/concept-domain';
+import { RepositoryUpdateData } from '../../domain/dest';
 
-export class FileWikiEntityRepository implements IWikiEntityRepository {
+export class FileWikiEntityRepository implements WikiEntityRepository {
+    deleteStorage(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    createStorage(): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
 
     private db: Loki;
     private dbItems: Collection<WikiEntity>;
@@ -76,7 +83,11 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
         return Promise.resolve(!!this.dbItems.findOne({ id }));
     }
     delete(id: string): Promise<boolean> {
-        return Promise.resolve(!!this.dbItems.remove(this.dbItems.findOne({ id })));
+        const it = this.dbItems.findOne({ id });
+        if (!it) {
+            return Promise.resolve(false);
+        }
+        return Promise.resolve(!!this.dbItems.remove(it));
     }
     create(data: WikiEntity): Promise<WikiEntity> {
         if (!!this.dbItems.findOne({ id: data.id })) {
@@ -88,7 +99,7 @@ export class FileWikiEntityRepository implements IWikiEntityRepository {
 
         return Promise.resolve(data);
     }
-    update(data: RepUpdateData<string, WikiEntity>): Promise<WikiEntity> {
+    update(data: RepositoryUpdateData<WikiEntity>): Promise<WikiEntity> {
         const item = this.dbItems.findOne({ id: data.id });
         if (!item) {
             return Promise.resolve(null);

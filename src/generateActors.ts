@@ -5,15 +5,16 @@ import {
     SaveActor,
     MemoryActorNameRepository,
     ActorType,
-    KnownActorData,
     ActorNameType,
+    BuildActorParams,
 } from '@textactor/actor-domain';
 import { formatActorsFile, formatConceptActorsFile, formatActorNamesFile } from "./data";
 import { writeFileSync } from "fs";
-import { IExplorerApi, INewDataContainer, Actor as ConceptActor, WikiEntityType } from "textactor-explorer";
-import { uniqByProp } from "@textactor/domain";
+import { WikiEntityType } from "@textactor/concept-domain";
+import { uniqByProperty, NameHelper } from "@textactor/domain";
+import {ExplorerApi, DataCollector, Actor as ConceptActor} from '@textactor/actors-explorer';
 
-export async function generateActors(explorerApi: IExplorerApi, dataContainer: INewDataContainer): Promise<void> {
+export async function generateActors(explorerApi: ExplorerApi, dataContainer: DataCollector): Promise<void> {
     const container = dataContainer.container();
 
     const locale: Locale = { lang: container.lang, country: container.country };
@@ -23,7 +24,7 @@ export async function generateActors(explorerApi: IExplorerApi, dataContainer: I
 
     const conceptActors: ConceptActor[] = [];
 
-    const explorer = explorerApi.newExplorer(container.id, {
+    const explorer = explorerApi.createContainerExplorer(container.id, {
         minConceptPopularity: 1,
         minAbbrConceptPopularity: 6,
         minOneWordConceptPopularity: 5,
@@ -57,26 +58,28 @@ function isValidActor(conceptActor: ConceptActor) {
         return false;
     }
 
-    if (!conceptActor.wikiEntity.type) {
-        if (conceptActor.wikiEntity.name.split(/\s+/g).length < 2) {
-            // debug(`actor no type and too short: ${conceptActor.wikiEntity.name}`);
+    const nameCountWords = Math.min(NameHelper.countWords(conceptActor.wikiEntity.name), NameHelper.countWords(conceptActor.name));
+
+    if (nameCountWords < 2) {
+        if (!conceptActor.wikiEntity.type) {
+            console.log(`actor no type and too short: ${conceptActor.wikiEntity.name}`);
             return false;
         }
-    }
+        const isLocale = conceptActor.wikiEntity.countryCodes.includes(conceptActor.country);
+        const countLinks = Object.keys(conceptActor.wikiEntity.links).length;
 
-    const lowerCaseNames = conceptActor.wikiEntity.names.filter(name => name.toLowerCase() === name);
-
-    if (lowerCaseNames.length > conceptActor.wikiEntity.names.length / 3) {
-        // debug(`too many lowecase names: ${lowerCaseNames}`);
-        return false;
+        if (!isLocale && countLinks < 10) {
+            console.log(`actor too short name & not popular: ${conceptActor.name}`);
+            return false;
+        }
     }
     return true;
 }
 
 function conceptActorToActor(conceptActor: ConceptActor) {
-    const actorData: KnownActorData = {
+    const actorData: BuildActorParams = {
         name: conceptActor.name,
-        names: [],
+        names: conceptActor.names.map(item => ({ name: item.name, popularity: item.popularity, type: item.type as ActorNameType })),
         country: conceptActor.country,
         lang: conceptActor.lang,
         type: conceptActor.wikiEntity && conceptWikiTypeToActorType(conceptActor.wikiEntity.type),
@@ -90,10 +93,14 @@ function conceptActorToActor(conceptActor: ConceptActor) {
         }
     };
 
-    actorData.names = conceptActor.wikiEntity.names.map(name => ({ name, type: ActorNameType.WIKI }));
-    actorData.names = actorData.names.concat(conceptActor.names.map(name => ({ name, type: ActorNameType.SAME })));
+    if (conceptActor.abbr) {
+        actorData.abbr = conceptActor.abbr;
+    }
+    if (conceptActor.commonName) {
+        actorData.commonName = conceptActor.commonName;
+    }
 
-    actorData.names = uniqByProp(actorData.names, 'name');
+    actorData.names = uniqByProperty(actorData.names, 'name');
 
     return actorData;
 }
