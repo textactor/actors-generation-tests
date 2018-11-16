@@ -10,13 +10,15 @@ import { WebArticle } from "./fetchArticles";
 
 import {
     MemoryConceptContainerRepository,
-    MemoryConceptRepository,
 } from '@textactor/concept-domain/dest/repositories/memory';
 
 import { createExplorer } from "@textactor/actors-explorer";
 import { FileWikiTitleRepository } from "./fileWikiTitleRepository";
 import { FileWikiEntityRepository } from "./fileWikiEntityRepository";
 import { FileWikiSearchNameRepository } from "./fileWikiSearchNameRepository";
+import { LocaleCountryTagsService } from "./country-tags-service";
+import { KnownNameService } from '@textactor/known-names';
+import { MemoryConceptRepository } from "./memory-concept-repository";
 
 let [, , localeArg] = process.argv;
 
@@ -38,6 +40,8 @@ const explorer = createExplorer({
     wikiTitleRep,
     entityRep,
     searchNameRep,
+    countryTagsService: new LocaleCountryTagsService(),
+    knownNameService: new KnownNameService(),
 })
 
 loadConcepts()
